@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="37510b14-3c12-45eb-b4b2-c73a5e0eb603" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="f8e95867-d123-4437-88d6-26a7c434cab3" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="MK07" database="mkarunadb" />
+	</db:config>
+	<flow name="vineethFlow" doc:id="a722dc69-da47-4a02-9bcc-9f1a6fbf3e7d" >
+		<http:listener doc:name="Listener" doc:id="e939b245-2cc5-4436-9a54-acd8af89efe7" config-ref="HTTP_Listener_config" path="dev"/>
+		<ee:transform doc:name="Transform Message" doc:id="46032554-ac19-4c72-823f-df05fc1e5541" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+1 to 10 map{
+ 	empid : 1 + $$,
+ 	empname : "vetri",
+ 	emploc : "krishna"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<foreach doc:name="For Each" doc:id="902c930a-411e-4fec-90b7-ca9b2283172b" >
+			<db:insert doc:id="9ddec70e-e4a7-45b0-8b16-32dbb88a9768" config-ref="Database_Config">
+			<db:sql><![CDATA[insert into vineeth( empid, empname, emploc)
+values( :empid, :empname, :emploc);]]></db:sql>
+			<db:input-parameters><![CDATA[#[payload]]]></db:input-parameters>
+		</db:insert>
+			<logger level="INFO" doc:name="Logger" doc:id="61e614eb-c191-4c2e-9988-6c007e150778" message="#[payload]" />
+		</foreach>
+		<logger level="INFO" doc:name="Logger" doc:id="4c80d181-a04e-455e-a5e7-38e7105d9efe" message="payload"/>
+	</flow>
+</mule>
